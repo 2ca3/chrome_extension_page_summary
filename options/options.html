@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Summary - 設定</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Page Summary 設定</h1>
+
+    <div class="section">
+      <h2>基本設定</h2>
+      <div class="form-group">
+        <label for="defaultLines">デフォルト要約行数:</label>
+        <input type="number" id="defaultLines" min="1" max="100" value="10">
+        <span class="help-text">要約時のデフォルト行数（1〜100）</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>LLMプロバイダー設定</h2>
+      <div class="form-group">
+        <label for="llmProvider">使用するLLM:</label>
+        <select id="llmProvider">
+          <option value="">選択してください</option>
+          <option value="openai">OpenAI (GPT)</option>
+          <option value="claude">Anthropic (Claude)</option>
+          <option value="gemini">Google (Gemini)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section" id="openai-section" style="display: none;">
+      <h2>OpenAI設定</h2>
+      <div class="form-group">
+        <label for="openaiApiKey">OpenAI APIキー:</label>
+        <input type="password" id="openaiApiKey" placeholder="sk-...">
+        <span class="help-text">OpenAI APIキーを入力してください</span>
+      </div>
+      <div class="form-group">
+        <label for="openaiModel">モデル:</label>
+        <select id="openaiModel">
+          <option value="gpt-5.2">GPT-5.2 (最新)</option>
+          <option value="gpt-5.1">GPT-5.1</option>
+          <option value="o3-mini">o3-mini (推論特化)</option>
+          <option value="gpt-4o">GPT-4o</option>
+          <option value="gpt-4o-mini">GPT-4o mini</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section" id="claude-section" style="display: none;">
+      <h2>Claude設定</h2>
+      <div class="form-group">
+        <label for="claudeApiKey">Claude APIキー:</label>
+        <input type="password" id="claudeApiKey" placeholder="sk-ant-...">
+        <span class="help-text">Anthropic APIキーを入力してください</span>
+      </div>
+      <div class="form-group">
+        <label for="claudeModel">モデル:</label>
+        <select id="claudeModel">
+          <option value="claude-opus-4-5">Claude Opus 4.5 (最新・最高性能)</option>
+          <option value="claude-sonnet-4-5">Claude Sonnet 4.5 (バランス型)</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5 (高速・低コスト)</option>
+          <option value="claude-opus-4">Claude Opus 4</option>
+          <option value="claude-sonnet-4">Claude Sonnet 4</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section" id="gemini-section" style="display: none;">
+      <h2>Gemini設定</h2>
+      <div class="form-group">
+        <label for="geminiApiKey">Gemini APIキー:</label>
+        <input type="password" id="geminiApiKey" placeholder="AI...">
+        <span class="help-text">Google AI Studio APIキーを入力してください</span>
+      </div>
+      <div class="form-group">
+        <label for="geminiModel">モデル:</label>
+        <select id="geminiModel">
+          <option value="gemini-3-pro-preview">Gemini 3 Pro Preview (最新)</option>
+          <option value="gemini-3-flash">Gemini 3 Flash (高速)</option>
+          <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+          <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+          <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (最安)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button id="save" class="btn-primary">保存</button>
+      <button id="test" class="btn-secondary">接続テスト</button>
+    </div>
+
+    <div id="message" class="message" style="display: none;"></div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

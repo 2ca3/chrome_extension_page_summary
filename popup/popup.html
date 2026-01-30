@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Summary</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="../lib/marked.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Page Summary</h1>
+
+    <div class="control-group">
+      <label for="lines">要約行数:</label>
+      <input type="number" id="lines" min="1" max="100" value="10">
+    </div>
+
+    <button id="summarize" class="btn-primary">要約する</button>
+    <button id="settings" class="btn-secondary">設定</button>
+
+    <div id="loading" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>要約中...</p>
+    </div>
+
+    <div id="result" class="result" style="display: none;">
+      <h2>要約結果</h2>
+      <div id="summary-content"></div>
+      <button id="copy" class="btn-secondary">コピー</button>
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
