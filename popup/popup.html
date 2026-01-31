@@ -6,6 +6,7 @@
   <title>Page Summary</title>
   <link rel="stylesheet" href="popup.css">
   <script src="../lib/marked.min.js"></script>
+  <script src="../lib/mermaid.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -16,18 +17,27 @@
       <input type="number" id="lines" min="1" max="100" value="10">
     </div>
 
-    <button id="summarize" class="btn-primary">要約する</button>
+    <div class="button-group">
+      <button id="summarize" class="btn-primary">要約する</button>
+      <button id="summarize-mindmap" class="btn-primary btn-mindmap">要約 + マインドマップ</button>
+    </div>
     <button id="settings" class="btn-secondary">設定</button>
 
     <div id="loading" class="loading" style="display: none;">
       <div class="spinner"></div>
-      <p>要約中...</p>
+      <p id="loading-text">要約中...</p>
     </div>
 
     <div id="result" class="result" style="display: none;">
       <h2>要約結果</h2>
       <div id="summary-content"></div>
-      <button id="copy" class="btn-secondary">コピー</button>
+      <button id="copy-summary" class="btn-copy">要約をコピー</button>
+    </div>
+
+    <div id="mindmap-result" class="mindmap-result" style="display: none;">
+      <h2>マインドマップ</h2>
+      <div id="mindmap-container"></div>
+      <button id="copy-mermaid" class="btn-copy">Mermaid記法をコピー</button>
     </div>
 
     <div id="error" class="error" style="display: none;"></div>
