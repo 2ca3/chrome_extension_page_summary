@@ -23,6 +23,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ error: error.message }));
     return true;
   }
+
+  if (request.action === 'explainWord') {
+    handleExplainWord(request.data)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
+  }
 });
 
 // 要約処理のメイン関数
@@ -83,6 +90,143 @@ async function handleSummarizeWithMindmap(data) {
   }
 
   return result;
+}
+
+// 単語説明処理のメイン関数
+async function handleExplainWord(data) {
+  const { word, context, provider, apiKeys } = data;
+
+  if (!word || word.trim().length === 0) {
+    throw new Error('単語が指定されていません');
+  }
+
+  // プロバイダーに応じてAPIを呼び出す
+  let explanation;
+  switch (provider) {
+    case 'openai':
+      if (!apiKeys.openai) throw new Error('OpenAI APIキーが設定されていません');
+      explanation = await callOpenAIExplanation(word, context, apiKeys.openai);
+      break;
+    case 'claude':
+      if (!apiKeys.claude) throw new Error('Claude APIキーが設定されていません');
+      explanation = await callClaudeExplanation(word, context, apiKeys.claude);
+      break;
+    case 'gemini':
+      if (!apiKeys.gemini) throw new Error('Gemini APIキーが設定されていません');
+      explanation = await callGeminiExplanation(word, context, apiKeys.gemini);
+      break;
+    default:
+      throw new Error('未対応のLLMプロバイダーです');
+  }
+
+  return { explanation };
+}
+
+// 単語説明用のプロンプトを生成
+function getExplanationPrompt(word, context) {
+  return `以下の単語について、簡潔に説明してください(2-3文程度)。
+
+単語: ${word}
+
+${context ? `文脈: ${context}` : ''}
+
+説明は平易な日本語で、初心者にも分かりやすく記述してください。
+**Markdown形式で出力してください**（見出し、箇条書き、太字を適宜使用）。`;
+}
+
+// OpenAI APIで単語説明
+async function callOpenAIExplanation(word, context, apiKey) {
+  const settings = await chrome.storage.sync.get(['openaiModel']);
+  const selectedModel = settings.openaiModel || 'gpt-4o';
+
+  const prompt = getExplanationPrompt(word, context);
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: selectedModel,
+      messages: [
+        { role: 'system', content: 'あなたは優秀な辞書アシスタントです。単語を分かりやすく説明してください。' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 300
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`OpenAI API Error: ${error.error?.message || response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+// Claude APIで単語説明
+async function callClaudeExplanation(word, context, apiKey) {
+  const settings = await chrome.storage.sync.get(['claudeModel']);
+  const selectedModel = settings.claudeModel || 'claude-sonnet-4-5';
+
+  const prompt = getExplanationPrompt(word, context);
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: selectedModel,
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Claude API Error: ${error.error?.message || response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.content[0].text;
+}
+
+// Gemini APIで単語説明
+async function callGeminiExplanation(word, context, apiKey) {
+  const settings = await chrome.storage.sync.get(['geminiModel']);
+  const selectedModel = settings.geminiModel || 'gemini-2.5-flash';
+
+  const prompt = getExplanationPrompt(word, context);
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 300
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Gemini API Error: ${error.error?.message || response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
 }
 
 // 接続テスト処理
