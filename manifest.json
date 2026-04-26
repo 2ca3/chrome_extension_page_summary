@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Page Summary",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "WebページをLLMで要約するChrome拡張",
   "permissions": [
     "activeTab",
