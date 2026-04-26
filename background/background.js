@@ -170,7 +170,7 @@ async function callOpenAIExplanation(word, context, apiKey) {
 // Claude APIで単語説明
 async function callClaudeExplanation(word, context, apiKey) {
   const settings = await chrome.storage.sync.get(['claudeModel']);
-  const selectedModel = settings.claudeModel || 'claude-sonnet-4-5';
+  const selectedModel = settings.claudeModel || 'claude-sonnet-4-6';
 
   const prompt = getExplanationPrompt(word, context);
 
@@ -179,7 +179,8 @@ async function callClaudeExplanation(word, context, apiKey) {
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
       model: selectedModel,
@@ -261,7 +262,8 @@ async function callOpenAI(content, lines, apiKey, model = 'gpt-4o') {
   const settings = await chrome.storage.sync.get(['openaiModel']);
   const selectedModel = model || settings.openaiModel || 'gpt-4o';
 
-  const prompt = `以下のWebページの内容を${lines}行程度で要約してください。
+  const prompt = `必ず日本語で回答してください。
+以下のWebページの内容を${lines}行程度で要約してください。
 要点を簡潔にまとめてください。
 
 **必ずMarkdown形式で出力してください:**
@@ -304,11 +306,12 @@ ${content}`;
 }
 
 // Claude API呼び出し
-async function callClaude(content, lines, apiKey, model = 'claude-sonnet-4-5') {
+async function callClaude(content, lines, apiKey, model = 'claude-sonnet-4-6') {
   const settings = await chrome.storage.sync.get(['claudeModel']);
-  const selectedModel = model || settings.claudeModel || 'claude-sonnet-4-5';
+  const selectedModel = model || settings.claudeModel || 'claude-sonnet-4-6';
 
-  const prompt = `以下のWebページの内容を${lines}行程度で要約してください。
+  const prompt = `必ず日本語で回答してください。
+以下のWebページの内容を${lines}行程度で要約してください。
 要点を簡潔にまとめてください。
 
 **必ずMarkdown形式で出力してください:**
@@ -324,7 +327,8 @@ ${content}`;
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
       model: selectedModel,
@@ -353,7 +357,8 @@ async function callGemini(content, lines, apiKey, model = 'gemini-2.5-flash') {
   const settings = await chrome.storage.sync.get(['geminiModel']);
   const selectedModel = model || settings.geminiModel || 'gemini-2.5-flash';
 
-  const prompt = `以下のWebページの内容を${lines}行程度で要約してください。
+  const prompt = `必ず日本語で回答してください。
+以下のWebページの内容を${lines}行程度で要約してください。
 要点を簡潔にまとめてください。
 
 **必ずMarkdown形式で出力してください:**
@@ -400,7 +405,8 @@ ${content}`;
 
 // マインドマップ用プロンプト生成
 function getMindmapPrompt(content, lines) {
-  return `以下のWebページの内容を分析し、要約とマインドマップを生成してください。
+  return `必ず日本語で回答してください。
+以下のWebページの内容を分析し、要約とマインドマップを生成してください。
 
 【重要】必ず以下の形式で出力してください。形式を厳守してください。
 
@@ -475,9 +481,9 @@ async function callOpenAIWithMindmap(content, lines, apiKey, model = 'gpt-4o') {
 }
 
 // Claude API呼び出し（マインドマップ付き）
-async function callClaudeWithMindmap(content, lines, apiKey, model = 'claude-sonnet-4-5') {
+async function callClaudeWithMindmap(content, lines, apiKey, model = 'claude-sonnet-4-6') {
   const settings = await chrome.storage.sync.get(['claudeModel']);
-  const selectedModel = model || settings.claudeModel || 'claude-sonnet-4-5';
+  const selectedModel = model || settings.claudeModel || 'claude-sonnet-4-6';
 
   const prompt = getMindmapPrompt(content, lines);
 
@@ -486,7 +492,8 @@ async function callClaudeWithMindmap(content, lines, apiKey, model = 'claude-son
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
       model: selectedModel,

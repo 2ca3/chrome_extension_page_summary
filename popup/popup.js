@@ -20,6 +20,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     securityLevel: 'loose'
   });
 
+  // サイズ切り替えボタン
+  const SIZES = {
+    S: { width: '400px', height: '400px' },
+    M: { width: '600px', height: '600px' },
+    L: { width: '800px', height: `${Math.floor(screen.availHeight * 0.8)}px` }
+  };
+  const sizeBtns = document.querySelectorAll('.size-btn');
+
+  function applySize(size) {
+    document.body.style.width = SIZES[size].width;
+    document.body.style.height = SIZES[size].height;
+    sizeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.size === size));
+    chrome.storage.local.set({ popupSize: size });
+  }
+
+  sizeBtns.forEach(btn => btn.addEventListener('click', () => applySize(btn.dataset.size)));
+
+  const sizeSettings = await chrome.storage.local.get(['popupSize']);
+  applySize(sizeSettings.popupSize || 'M');
+
   // 保存された設定を読み込む
   const settings = await chrome.storage.sync.get(['defaultLines']);
   if (settings.defaultLines) {
