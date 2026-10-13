@@ -34,7 +34,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 要約処理のメイン関数
 async function handleSummarize(data) {
-  const { title, content, lines, provider, apiKeys } = data;
+  const { title, content, lines, customInstruction, provider, apiKeys } = data;
 
   if (!content || content.trim().length === 0) {
     throw new Error('ページ内容が空です');
@@ -45,15 +45,15 @@ async function handleSummarize(data) {
   switch (provider) {
     case 'openai':
       if (!apiKeys.openai) throw new Error('OpenAI APIキーが設定されていません');
-      summary = await callOpenAI(content, lines, apiKeys.openai);
+      summary = await callOpenAI(content, lines, apiKeys.openai, undefined, customInstruction);
       break;
     case 'claude':
       if (!apiKeys.claude) throw new Error('Claude APIキーが設定されていません');
-      summary = await callClaude(content, lines, apiKeys.claude);
+      summary = await callClaude(content, lines, apiKeys.claude, undefined, customInstruction);
       break;
     case 'gemini':
       if (!apiKeys.gemini) throw new Error('Gemini APIキーが設定されていません');
-      summary = await callGemini(content, lines, apiKeys.gemini);
+      summary = await callGemini(content, lines, apiKeys.gemini, undefined, customInstruction);
       break;
     default:
       throw new Error('未対応のLLMプロバイダーです');
@@ -64,7 +64,7 @@ async function handleSummarize(data) {
 
 // 要約+マインドマップ処理のメイン関数
 async function handleSummarizeWithMindmap(data) {
-  const { title, content, lines, provider, apiKeys } = data;
+  const { title, content, lines, customInstruction, provider, apiKeys } = data;
 
   if (!content || content.trim().length === 0) {
     throw new Error('ページ内容が空です');
@@ -75,15 +75,15 @@ async function handleSummarizeWithMindmap(data) {
   switch (provider) {
     case 'openai':
       if (!apiKeys.openai) throw new Error('OpenAI APIキーが設定されていません');
-      result = await callOpenAIWithMindmap(content, lines, apiKeys.openai);
+      result = await callOpenAIWithMindmap(content, lines, apiKeys.openai, undefined, customInstruction);
       break;
     case 'claude':
       if (!apiKeys.claude) throw new Error('Claude APIキーが設定されていません');
-      result = await callClaudeWithMindmap(content, lines, apiKeys.claude);
+      result = await callClaudeWithMindmap(content, lines, apiKeys.claude, undefined, customInstruction);
       break;
     case 'gemini':
       if (!apiKeys.gemini) throw new Error('Gemini APIキーが設定されていません');
-      result = await callGeminiWithMindmap(content, lines, apiKeys.gemini);
+      result = await callGeminiWithMindmap(content, lines, apiKeys.gemini, undefined, customInstruction);
       break;
     default:
       throw new Error('未対応のLLMプロバイダーです');
@@ -257,12 +257,9 @@ async function handleTestConnection(data) {
   }
 }
 
-// OpenAI API呼び出し
-async function callOpenAI(content, lines, apiKey, model = 'gpt-4o') {
-  const settings = await chrome.storage.sync.get(['openaiModel']);
-  const selectedModel = model || settings.openaiModel || 'gpt-4o';
-
-  const prompt = `必ず日本語で回答してください。
+// 要約用プロンプト生成
+function getSummaryPrompt(content, lines, customInstruction) {
+  return `必ず日本語で回答してください。
 以下のWebページの内容を${lines}行程度で要約してください。
 要点を簡潔にまとめてください。
 
@@ -271,8 +268,16 @@ async function callOpenAI(content, lines, apiKey, model = 'gpt-4o') {
 - 重要なポイントは箇条書き(- または *)を使用
 - 強調したい部分は **太字** を使用
 - 必要に応じてコードブロックや引用も使用可能
-
+${customInstruction ? `\n**追加の指示:**\n${customInstruction}\n` : ''}
 ${content}`;
+}
+
+// OpenAI API呼び出し
+async function callOpenAI(content, lines, apiKey, model = 'gpt-4o', customInstruction = '') {
+  const settings = await chrome.storage.sync.get(['openaiModel']);
+  const selectedModel = model || settings.openaiModel || 'gpt-4o';
+
+  const prompt = getSummaryPrompt(content, lines, customInstruction);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -306,21 +311,11 @@ ${content}`;
 }
 
 // Claude API呼び出し
-async function callClaude(content, lines, apiKey, model = 'claude-sonnet-4-6') {
+async function callClaude(content, lines, apiKey, model = 'claude-sonnet-4-6', customInstruction = '') {
   const settings = await chrome.storage.sync.get(['claudeModel']);
   const selectedModel = model || settings.claudeModel || 'claude-sonnet-4-6';
 
-  const prompt = `必ず日本語で回答してください。
-以下のWebページの内容を${lines}行程度で要約してください。
-要点を簡潔にまとめてください。
-
-**必ずMarkdown形式で出力してください:**
-- 見出しには # を使用
-- 重要なポイントは箇条書き(- または *)を使用
-- 強調したい部分は **太字** を使用
-- 必要に応じてコードブロックや引用も使用可能
-
-${content}`;
+  const prompt = getSummaryPrompt(content, lines, customInstruction);
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -353,21 +348,11 @@ ${content}`;
 }
 
 // Gemini API呼び出し
-async function callGemini(content, lines, apiKey, model = 'gemini-2.5-flash') {
+async function callGemini(content, lines, apiKey, model = 'gemini-2.5-flash', customInstruction = '') {
   const settings = await chrome.storage.sync.get(['geminiModel']);
   const selectedModel = model || settings.geminiModel || 'gemini-2.5-flash';
 
-  const prompt = `必ず日本語で回答してください。
-以下のWebページの内容を${lines}行程度で要約してください。
-要点を簡潔にまとめてください。
-
-**必ずMarkdown形式で出力してください:**
-- 見出しには # を使用
-- 重要なポイントは箇条書き(- または *)を使用
-- 強調したい部分は **太字** を使用
-- 必要に応じてコードブロックや引用も使用可能
-
-${content}`;
+  const prompt = getSummaryPrompt(content, lines, customInstruction);
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
@@ -404,7 +389,7 @@ ${content}`;
 }
 
 // マインドマップ用プロンプト生成
-function getMindmapPrompt(content, lines) {
+function getMindmapPrompt(content, lines, customInstruction) {
   return `必ず日本語で回答してください。
 以下のWebページの内容を分析し、要約とマインドマップを生成してください。
 
@@ -418,7 +403,7 @@ function getMindmapPrompt(content, lines) {
 - ポイント3
 
 （${lines}行程度のMarkdown形式の要約をここに記述。見出し#、箇条書き-、**太字**を使用）
-
+${customInstruction ? `\n【要約の追加指示】\n${customInstruction}\n` : ''}
 ---MINDMAP---
 mindmap
   root((テーマ))
@@ -443,11 +428,11 @@ ${content}`;
 }
 
 // OpenAI API呼び出し（マインドマップ付き）
-async function callOpenAIWithMindmap(content, lines, apiKey, model = 'gpt-4o') {
+async function callOpenAIWithMindmap(content, lines, apiKey, model = 'gpt-4o', customInstruction = '') {
   const settings = await chrome.storage.sync.get(['openaiModel']);
   const selectedModel = model || settings.openaiModel || 'gpt-4o';
 
-  const prompt = getMindmapPrompt(content, lines);
+  const prompt = getMindmapPrompt(content, lines, customInstruction);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -481,11 +466,11 @@ async function callOpenAIWithMindmap(content, lines, apiKey, model = 'gpt-4o') {
 }
 
 // Claude API呼び出し（マインドマップ付き）
-async function callClaudeWithMindmap(content, lines, apiKey, model = 'claude-sonnet-4-6') {
+async function callClaudeWithMindmap(content, lines, apiKey, model = 'claude-sonnet-4-6', customInstruction = '') {
   const settings = await chrome.storage.sync.get(['claudeModel']);
   const selectedModel = model || settings.claudeModel || 'claude-sonnet-4-6';
 
-  const prompt = getMindmapPrompt(content, lines);
+  const prompt = getMindmapPrompt(content, lines, customInstruction);
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -518,11 +503,11 @@ async function callClaudeWithMindmap(content, lines, apiKey, model = 'claude-son
 }
 
 // Gemini API呼び出し（マインドマップ付き）
-async function callGeminiWithMindmap(content, lines, apiKey, model = 'gemini-2.5-flash') {
+async function callGeminiWithMindmap(content, lines, apiKey, model = 'gemini-2.5-flash', customInstruction = '') {
   const settings = await chrome.storage.sync.get(['geminiModel']);
   const selectedModel = model || settings.geminiModel || 'gemini-2.5-flash';
 
-  const prompt = getMindmapPrompt(content, lines);
+  const prompt = getMindmapPrompt(content, lines, customInstruction);
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
