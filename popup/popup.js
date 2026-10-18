@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const linesInput = document.getElementById('lines');
+  const customInstructionInput = document.getElementById('custom-instruction');
   const summarizeBtn = document.getElementById('summarize');
   const summarizeMindmapBtn = document.getElementById('summarize-mindmap');
   const settingsBtn = document.getElementById('settings');
@@ -103,6 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       setButtonsDisabled(true);
 
       const lines = parseInt(linesInput.value) || 10;
+      const customInstruction = customInstructionInput.value.trim();
       const config = await getConfig();
       const pageData = await getPageContent();
 
@@ -112,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           title: pageData.title,
           content: pageData.content,
           lines: lines,
+          customInstruction: customInstruction,
           provider: config.llmProvider,
           apiKeys: {
             openai: config.openaiApiKey,
@@ -149,6 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       setButtonsDisabled(true);
 
       const lines = parseInt(linesInput.value) || 10;
+      const customInstruction = customInstructionInput.value.trim();
       const config = await getConfig();
       const pageData = await getPageContent();
 
@@ -158,6 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           title: pageData.title,
           content: pageData.content,
           lines: lines,
+          customInstruction: customInstruction,
           provider: config.llmProvider,
           apiKeys: {
             openai: config.openaiApiKey,
