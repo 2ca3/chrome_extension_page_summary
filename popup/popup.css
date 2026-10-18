@@ -85,6 +85,16 @@ input[type="number"] {
   font-size: 14px;
 }
 
+textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
 .button-group {
   display: flex;
   gap: 10px;
