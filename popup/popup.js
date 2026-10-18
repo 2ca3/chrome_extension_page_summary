@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const resultDiv = document.getElementById('result');
   const summaryContent = document.getElementById('summary-content');
   const copySummaryBtn = document.getElementById('copy-summary');
+  const saveMarkdownBtn = document.getElementById('save-markdown');
   const mindmapResultDiv = document.getElementById('mindmap-result');
   const mindmapContainer = document.getElementById('mindmap-container');
   const copyMermaidBtn = document.getElementById('copy-mermaid');
@@ -129,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // 結果を表示(MarkdownをHTMLに変換)
       summaryContent.dataset.markdown = response.summary;
+      summaryContent.dataset.pageTitle = pageData.title;
       summaryContent.innerHTML = marked.parse(response.summary);
       hideLoading();
       resultDiv.style.display = 'block';
@@ -176,6 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // 要約を表示
       summaryContent.dataset.markdown = response.summary;
+      summaryContent.dataset.pageTitle = pageData.title;
       summaryContent.innerHTML = marked.parse(response.summary);
       resultDiv.style.display = 'block';
 
@@ -235,6 +238,55 @@ document.addEventListener('DOMContentLoaded', async () => {
       errorDiv.style.display = 'block';
     }
   });
+
+  // Markdown保存ボタンのクリックイベント
+  saveMarkdownBtn.addEventListener('click', async () => {
+    try {
+      const markdown = summaryContent.dataset.markdown;
+      if (!markdown) {
+        throw new Error('保存する要約がありません');
+      }
+
+      const { saveFolder } = await chrome.storage.sync.get(['saveFolder']);
+      const pageTitle = summaryContent.dataset.pageTitle || 'summary';
+      const fileName = buildMarkdownFileName(pageTitle);
+      const filePath = saveFolder ? `${saveFolder}/${fileName}` : fileName;
+
+      const blob = new Blob([markdown], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+
+      await chrome.downloads.download({
+        url: url,
+        filename: filePath,
+        saveAs: false
+      });
+
+      URL.revokeObjectURL(url);
+
+      const originalText = saveMarkdownBtn.textContent;
+      saveMarkdownBtn.textContent = '保存しました！';
+      setTimeout(() => {
+        saveMarkdownBtn.textContent = originalText;
+      }, 2000);
+    } catch (error) {
+      errorDiv.textContent = 'Markdownの保存に失敗しました: ' + error.message;
+      errorDiv.style.display = 'block';
+    }
+  });
+
+  // Markdownファイル名を生成する関数
+  function buildMarkdownFileName(title) {
+    const sanitizedTitle = title
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .substring(0, 100) || 'summary';
+
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+    return `${sanitizedTitle}_${timestamp}.md`;
+  }
 
   // Mermaidコピーボタンのクリックイベント
   copyMermaidBtn.addEventListener('click', async () => {

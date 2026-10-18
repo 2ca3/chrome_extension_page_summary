@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const defaultLinesInput = document.getElementById('defaultLines');
+  const saveFolderInput = document.getElementById('saveFolder');
   const llmProviderSelect = document.getElementById('llmProvider');
   const openaiApiKeyInput = document.getElementById('openaiApiKey');
   const openaiModelSelect = document.getElementById('openaiModel');
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 保存された設定を読み込む
   const settings = await chrome.storage.sync.get([
     'defaultLines',
+    'saveFolder',
     'llmProvider',
     'openaiApiKey',
     'openaiModel',
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
 
   if (settings.defaultLines) defaultLinesInput.value = settings.defaultLines;
+  if (settings.saveFolder) saveFolderInput.value = settings.saveFolder;
   if (settings.llmProvider) llmProviderSelect.value = settings.llmProvider;
   if (settings.openaiApiKey) openaiApiKeyInput.value = settings.openaiApiKey;
   if (settings.openaiModel) openaiModelSelect.value = settings.openaiModel;
@@ -56,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const settingsToSave = {
         defaultLines: parseInt(defaultLinesInput.value),
+        saveFolder: saveFolderInput.value.trim().replace(/^\/+|\/+$/g, ''),
         llmProvider: llmProviderSelect.value,
         openaiApiKey: openaiApiKeyInput.value,
         openaiModel: openaiModelSelect.value,
