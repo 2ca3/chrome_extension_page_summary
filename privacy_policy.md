@@ -1,6 +1,6 @@
 # Privacy Policy for Page Summary
 
-_Last updated: 2026-05-23_
+_Last updated: 2026-10-20_
 
 ## Overview
 
@@ -19,8 +19,17 @@ The following data is stored locally in your browser using Chrome's `storage` AP
 - AI provider selection (Claude / OpenAI / Gemini)
 - API keys you enter in the Options page
 - Display preferences (summary length, popup size, etc.)
+- Your configured save folder path for Markdown export (see below)
 
 This data never leaves your device except as described below.
+
+## Saving Summaries as Markdown Files
+
+When you click "Markdownで保存" (Save as Markdown), the summary text is saved as a local `.md` file using Chrome's `downloads` API. This happens only when you explicitly click the button.
+
+- The file is saved to your browser's configured download directory (optionally inside a subfolder you specify in the Options page).
+- No file content is uploaded anywhere; this is purely a local file save using the browser's built-in download mechanism.
+- Chrome's `downloads` API does not allow saving outside the download directory, so this feature cannot write to arbitrary locations on your device.
 
 ## Data Sent to Third-Party AI APIs
 
@@ -39,6 +48,7 @@ Your API key is included in the request header for authentication. Page content 
 - **activeTab**: To read the content of the current tab when you activate the extension.
 - **scripting**: To extract text content from the page.
 - **storage**: To save your settings and API keys locally.
+- **downloads**: To save summary results as Markdown files to your local download folder, only when you click "Markdownで保存" (Save as Markdown).
 - **host_permissions (https://*/*)**: Required to send page content to AI API endpoints.
 
 ## Children's Privacy
